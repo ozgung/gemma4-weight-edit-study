@@ -35,8 +35,8 @@ Kaggle dataset below.
 
 - `weightprog`, the editing library, is a separate repository: github.com/ozgung/weightprog.
 - The replay set (320 held-out `edit_file` calls with prompts and file states), the frozen gate reports and the
-  usability-test records are a Kaggle dataset: [link].
-- OOD-C, 186 tasks for offline agent runs, is a Kaggle dataset: [link].
+  usability-test records are a Kaggle dataset: https://www.kaggle.com/datasets/ozgung/g4-weight-edit-replay.
+- OOD-C, 186 tasks for offline agent runs, is a Kaggle dataset: https://www.kaggle.com/datasets/ozgung/g4-oodc.
 
 ## Commit hashes
 

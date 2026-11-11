@@ -2075,3 +2075,112 @@ The pass budget (10) and the gate are unchanged. For the paper: the informed arm
   - On the 48 prompts, the two library edits change fewer prompts than their controls' median, since their KL is about a tenth of their controls'. The nolib edit sits near its controls' median.
   - The lib agent's own estimate was that about 3 % of plain prompts change their greedy text at bf16 ties.
 - **Use:** descriptive only. If it finishes in time, it goes into Paper 2 §4 as one sentence, as a rate with its interval. No verdict changes.
+
+### 2026-11-11 16:29 UTC: noise-floor result: matched controls fail the four-prompt keep check 35 of 60 times (0.58, Wilson 95 % 0.46–0.70); both library edits sit at the bottom of their control distributions (Claude, paper session)
+
+- **Run:** as registered at 13:14 UTC (`noise_floor.py` 799e4007ac48, unchanged); 13:14–16:29 UTC on the local Mac (the base rows came from the earlier base-only run). Output `outputs/weight_edit/libtest/noise_floor/summary.json`, `rows_{base,lib,nolib,libfable}.jsonl`.
+- **Reproduction check: passed.** Base greedy equals the judge's on the 4 holdout prompts. The judge's controls change 1 and 1 (lib), 0 and 0 (nolib), 1 and 0 (libfable) of the 4 holdout prompts, and the edits 1, 2 and 1, all as registered.
+- **Prompts changed of 48 (greedy text differs from base):**
+
+  | Edit | Edit | 20 new matched controls (sorted) | Median | Controls failing the 4-prompt check |
+  |---|---|---|---|---|
+  | lib (Opus 5.5 with weightprog) | 3 | 4 5 6 6 6 7 7 7 7 8 8 8 9 9 10 11 11 11 11 12 | 8 | 11/20 |
+  | nolib (Opus 5.5 without) | 11 | 8 8 8 9 10 10 10 10 11 11 13 13 14 14 14 15 15 16 16 20 | 12 | 12/20 |
+  | libfable (Fable 5.2 with) | 3 | 3 5 7 7 8 8 10 10 10 11 11 12 12 12 12 13 13 13 13 15 | 11 | 12/20 |
+
+- **Pooled:** 35 of the 60 new controls change at least one of the 4 holdout prompts: rate 0.58, Wilson 95 % interval 0.46–0.70.
+- **Expectations: all met.**
+  - Pooled rate within 0.25–0.75: met (0.58).
+  - Library edits below their controls' median on the 48: met. lib changes 3 (fewer than all 20 controls); libfable changes 3 (fewer than 19, tied with 1).
+  - nolib near its median: met (11 against a median of 12; 8 controls lower, 10 higher).
+- **Reading:** the registered four-prompt limit (10 % of 4 prompts, so no change allowed) fails more than half of size-matched random edits, so it cannot separate a careful edit from a random one of the same size. On the 48 prompts, the two library edits change 3 (6 %) and sit at the bottom of their control distributions. This is post hoc and descriptive; the registered FAIL verdicts stand.
+- **Use:** one sentence in Paper 2 §4.
+
+### 2026-11-11 14:25 UTC: correction to the round-1 Opus "narrowed claim" entry (Claude, paper session)
+
+- The entry "Narrowed claim, accepted" (about line 712) says a layer-23 `v_proj` edit reaches "the layer-23 values reused by the KV-sharing layers (24–41)". More precisely: layers 24 to 41 share KV, but only the full-attention layers among them (29, 35 and 41) reuse layer 23's keys and values. The sliding-attention layers reuse layer 22's. Checked against the model config (`num_kv_shared_layers` 18, `layer_types`); first raised by the Chrome session on 11-11. Neither paper repeats the imprecise wording. records.md says that layers 24 to 41 read keys and values computed at layers 22 and 23, which is correct.
+
+### 2026-11-11 14:34 UTC: round-2 gate re-scored without the harness's unescape fallback (post hoc, descriptive; Claude, review session benchmark-teslim-plani)
+
+- **Why:** the papers' main lesson is conditional ("where a tool already repairs a malformed argument ..."). The other half was never measured: what the same gate shows in a harness that does not repair escaped arguments. The user asked for this on 11-11 ("1-5 başlayabilirsin").
+- **Timing, stated plainly:** nothing here was registered in advance. A scratch recount by outcome label (`outputs/paper/review/analysis_20261111/strict.py`) was read at about 14:00 UTC, before the script below was written. The registered verdicts stand.
+- **What changes:** only the acceptance rule. No generation. The frozen generations go through `swegemma.edit.apply_replacement` again with the fourth matching tier (`adk_eval_core.editing.edit._apply_unescaped_match`, the JSON-unescape fallback) returning None. Tiers 1 to 3 (exact, flexible, regex) are untouched. The fallback is the last tier, so a call it had rescued simply fails.
+- **Script:** `scripts/weight_edit/gate_r2_nofallback.py` (sha256 40d6b3f909b1); it imports the registered definitions from `gate_r2_analyze.py`. Report `outputs/weight_edit/claude/gate_r2/nofallback_report.json` (64f35a9ead38), run log `gate_r2/nofallback/run.log`.
+- **Check:** with the fallback on, all 15,360 recomputed outcomes and compile flags equal the stored `.scored.jsonl` files (15 old-text arms and 8 full-call arms), and the registered served-ok losses come out again (Opus 2 and 3, Fable 5 and 5, informed Opus 11 and 11).
+- **Result without the fallback** (640 generations, 101 tasks; base accepted 443 becomes 359; served-ok calls the base accepts 213 and 213 become 177 and 174; base full-call compile failures 5.5 % of 361 accepted):
+
+| Arm | Artefacts | Accepted | Task-macro acceptance vs base (repository-clustered 95 % CI) | Tasks better / worse, sign p | p against both controls | Served-ok lost per draw | Full-call compile fail (guard) | All three guards |
+|---|---|---|---|---|---|---|---|---|
+| `opus_r2` | 77 | 387 (+28) | +4.1 points (+1.6 to +7.2) | 10 / 0, 0.00098 | 0.019 | 0, 0 | 6.8 % (pass) | **pass** |
+| `fable_r2` | 47 | 398 (+39) | +7.3 (+3.6 to +11.9) | 17 / 0, 7.6e-06 | 7.6e-06 | 0, 0 | 6.6 % (pass) | **pass** |
+| `opusinf_r2` | 25 | 409 (+50) | +9.3 (+4.6 to +15.4) | 20 / 1, 1e-05 | 5.5e-06 | 1, 0 | 7.6 % (fail, limit 7.5 %) | fail |
+| `fable52inf_v6` (withdrawn) | 43 | 401 (+42) | +7.9 (+3.0 to +14.2) | 15 / 1, 0.00026 | 0.0013 | 1, 0 | 9.1 % (fail) | fail |
+| `G-yer-39` | 23 | 410 (+51) | +9.4 (+4.2 to +15.7) | 22 / 3, 7.8e-05 | no controls | 3, 1 | 9.2 % (fail) | fail |
+| `G-tam-39` | 5 | 463 (+104) | +15.9 (+9.4 to +23.3) | 35 / 2, 5.1e-09 | no controls | 1, 2 | 10.4 % (fail) | fail |
+| `G-tam-411` | 4 | 441 (+82) | +15.0 (+8.7 to +22.8) | 31 / 4, 1.7e-06 | no controls | 4, 4 | 5.2 % (pass) | fail |
+| 8 random controls | 99 to 102 | 357 to 361 | −0.8 to +0.3 | | | 0 to 2; `opusinf_r2_rand1` 4 in the greedy draw | | |
+
+- **Reading:** under the harness as shipped the same arms change accepted calls by +6, +2, −16, +1, −10, +27 and +6 and lose 3, 5, 11, 3, 13, 5 and 7 served-ok calls in their worse draw. Without the fallback, the two blind round-2 edits meet all three guards and raise acceptance beyond the base and both controls; their escape-artefact primary had already passed Holm in the registered report (p 0.011 and below 1e-4). So under this counterfactual rule both would have passed the registered primary and the key secondary. Informed Opus gains most among the authored edits and misses the compile guard by 0.1 point. The trained adapters gain the most acceptance and each miss one guard.
+- **Accepted and compiling, full-call replay, without the fallback:** base 339; Opus 357, Fable 378, informed Opus 385, G-tam-39 396.
+- **Variants in the report:** exact matching only (tiers 2 to 4 off) gives the same picture (Fable +7.0 points, 16 / 0, lost 0 and 0, guards pass; Opus +3.7 points, lost 0 and 0, guards pass, but p against its controls 0.073). Requiring that the recorded call itself succeeded without the fallback changes no served-ok verdict.
+- **Limits:** post hoc. Single calls on frozen prefixes that were recorded in the harness with the fallback; no agent has run without it. The editors tuned their edits against the shipped harness. The served-ok set is redefined under the rule.
+- **Loss anatomy, by the same frozen outputs** (`outputs/paper/review/analysis_20261111/channels.py`, scratch, not re-derived): every one of Fable's 12 lost base-accepted generations is a call the fallback had rescued; 1 is a fully converted copy, 6 still carry an artefact (half-converted or cut short), 5 carry no counted artefact.
+
+### 2026-11-11 14:34 UTC: native-rendering arm on the round-2 gate set, registered before any generation (descriptive; Claude, review session benchmark-teslim-plani)
+
+- **Why:** the tool-side change (WP12: tool responses rendered in the template's native mapping form, so file text is not JSON-escaped) was judged only in round 1, on 225 held-back training-repository calls. The papers therefore cannot set it beside the weight edits and trained adapters on one set. This runs it on the round-2 gate set. The user gave the go on 11-11 ("1-5 başlayabilirsin"; item 5, Mac GPU).
+- **Intervention:** `wp12_render.py` (734225b90967, unchanged since 11-03) on `replay_ood/calls.jsonl`, written to `gate_r2/native/calls_raw.jsonl` (6181d1d42359). Checked before any generation: all 320 usable prompts change, every other field is identical, 1,596 tool-response blocks rewritten, none skipped, 3.0 % fewer prompt tokens. As in WP12, the intervention is a bundle (field structure, escaping, token length and positions).
+- **Runs** (`gate_r2/native/run_native.sh`, c6eceea35cfe; local MLX, bf16, no edit; it waits for the noise-floor run to end):
+  1. old-text replay, `replay_gen.py` (e090d2500559) with `usable_keys.txt` (19385ab9629a), greedy + 1 sampled, into `gate_r2/native/gen_native.jsonl`; scored by `replay_score.py` (bc2a19433c2e). About 1 h.
+  2. full-call replay, `replay_fullcall.py` (e213adcd8813), same keys and draws, into `gate_r2/native/fullcall/gen_native.jsonl`; scored by `replay_score_fullcall.py` (250176b7e592). 2 to 4.5 h. It may be stopped if the GPU is needed; it resumes.
+- **Comparison:** against the frozen base arms (`gate_r2/gen_base.jsonl`, `gate_r2/fullcall/gen_base.jsonl`), by `gate_r2_nofallback.py --extra native=...` under both rules (harness as shipped, fallback off), with the registered definitions: escape artefacts and acceptance per task with the one-sided sign test and the repository-clustered interval, served-ok calls lost per draw, the full-call compile guard. From the full-call scoring also: artefacts in the old and in the new text (base 89 and 67 of 640).
+- **What this arm is not:** a gate candidate. It has no size-matched random controls (a view change has no such control) and enters no Holm family. Its prompts differ from the base's, so the sampled draw is not coupled to the base's by seed; as a yardstick, the base's own greedy and sampled draws disagree on 1 of 320 calls.
+- **Expectation, written before any output:**
+  - Old-text replay: escape artefacts change little (between 80 and 100 against the base's 100), as in round 1 (42 to 39), because the frozen prefix still holds the model's own escaped new text. Task-macro acceptance between 0 and +4 points under the shipped harness, more without the fallback only if artefacts fall. Served-ok calls lost 0 to 3 per draw.
+  - Full-call replay: if the escapes come from the escaped view, old-text artefacts fall below 45 of 640 (half the base's 89) and new-text artefacts below 34. If they stay above those marks, the view is not their main source at the call level.
+- **Reading rule:** descriptive in every case. For the papers: one sentence with the artefact counts, the acceptance difference and the lost calls under both rules, placed beside the edits; no claim about which intervention is better unless the task-level sign test against the base is below 0.05 in the same direction under both rules. A blocked or incomplete run is reported as such and nothing enters the papers.
+
+### 2026-11-11 16:39 UTC: native-rendering arm started at 16:29 UTC; analysis script extended before any native output was read (Claude, review session benchmark-teslim-plani)
+
+- **Run:** the noise-floor run ended at 16:29 UTC and `run_native.sh` started the old-text replay then (55 of 320 calls generated at 16:39; about 1 h in all). The full-call replay follows. No generated native text or score has been read; the generator's progress lines show only the recorded outcome of each call.
+- **Script change:** `scripts/weight_edit/gate_r2_nofallback.py` is now 934955c12cbd (was 40d6b3f909b1). The registered definitions and every existing number are untouched. Added, for an `--extra` arm only: the escape-artefact comparison per task against the base (the registered comparison names it; the script reported only the count), its repository-clustered interval, and the one-sided sign test in the worse direction for acceptance (the reading rule asks for the direction under both rules). Added for every arm with a scored full-call replay: artefacts in the generated old and new text, summed from the stored flags. With `--extra` the report is written to `gate_r2/nofallback_report_<names>.json`, so the report of record is not overwritten.
+- **Check** (an existing arm passed as the extra arm, `--extra selftest=gen_fable_r2.jsonl,fullcall/gen_fable_r2.jsonl`; test report deleted afterwards): `nofallback_report.json` keeps sha 64f35a9ead38; every registered arm's block in the `--extra` report equals the report of record under all three rules; the extra arm's numbers equal `fable_r2`'s; the full-call artefact counts come out as recorded (base 89 and 67, Opus 65 and 47, Fable 34 and 17, informed Opus 23 and 15).
+
+### 2026-11-11 17:30 UTC: native-rendering arm, old-text replay result (descriptive; Claude, review session benchmark-teslim-plani)
+
+- **Run:** old-text replay 16:29 to 17:27 UTC, 640 generations, rc 0 (`gate_r2/native/gen_native.jsonl`, 47cd165a1868; `gen_native.scored.jsonl`, 02f03368faea). Analysis: `gate_r2_nofallback.py` (934955c12cbd) `--extra native=gate_r2/native/gen_native.jsonl`; report `gate_r2/nofallback_report_native.json` (6fd4561a5b21), run log `gate_r2/native/analysis/oldtext_run.log`. With the fallback on, the script reproduces the 640 stored native outcomes; the report of record keeps sha 64f35a9ead38. The full-call replay started at 17:27 UTC; the compile guard and the full-call artefact counts wait for it.
+- **Result** (640 generations, 101 tasks; no random controls; 575 of the 640 generated old texts are identical to the base's):
+
+| | Base | Native rendering | For comparison: `opus_r2` |
+|---|---|---|---|
+| Escape artefacts | 100 | 78 (fewer in 12 tasks, more in none; sign p 0.0002; task macro −2.8 points, repository CI −4.9 to −1.1) | 77 |
+| Harness as shipped: accepted | 443 | 447; task macro +0.1 points (CI −1.2 to +1.6); better 4, worse 4; p 0.64 | 449; +0.4 points |
+| Harness as shipped: served-ok lost per draw (of 213, limit 2) | | 1 and 2 (rule met) | 2 and 3 |
+| Fallback off: accepted | 359 | 382; task macro +3.7 points (CI +1.3 to +6.9); better 12, worse 1; p 0.0017 | 387; +4.1 points; 10 / 0 |
+| Fallback off: served-ok lost per draw (of 177 and 174) | | 0 and 0 | 0 and 0 |
+| Fallback-rescued base calls (84) moved off the fallback / failed | | 21 / 4 | 24 / 5 |
+
+- **Where the changes are:** all 22 removed artefacts are removals (no generation gained one). 13 of them turn a fallback-rescued call into an exact match, 3 turn a not-found call into an exact match, 5 stay not found, 1 turns a fallback-rescued call into a not-found one. The 5 lost base-accepted generations: 3 on served-ok calls (`nwb2bids_347_interface` in both draws, `kedro_5790` in the sampled draw; each still carries an artefact and was rescued in the base), 1 on a call recorded as not found, 1 cut short at 52 characters (`haystack_10547`, outcome `multiple`).
+- **Against the expectation written before the run:** artefacts 78, just below the expected 80 to 100, so the fall is larger than I expected (22 %, against 7 % in round 1). Acceptance under the shipped harness +0.1 points, inside 0 to +4. Served-ok lost 1 and 2, inside 0 to 3. Without the fallback acceptance rises, as expected only if artefacts fell.
+- **Reading (by the registered rule):** descriptive. The acceptance sign test is below 0.05 only without the fallback (0.64 with it), so no claim about which intervention is better. What the table shows: on this set the view change behaves like the smallest weight edit. It removes about a fifth of the escaped copies; under the shipped harness that buys no acceptance (round 1's +2.0 points on held-back training-repository calls does not recur here) and costs 1 and 2 working calls, at the limit; without the fallback it gains about 4 points and loses none. So the dependence on the matching rule is not specific to weight edits. Limits: no size-matched controls exist for a view change; under the shipped harness its losses (1 and 2) are at or just above what the eight random weight controls show (0 to 1), and without the fallback it loses none (controls 0 to 4); prompts differ from the base's, so draws are not coupled.
+
+### 2026-11-11 19:16 UTC: native-rendering arm, full-call replay result; the arm is complete (descriptive; Claude, review session benchmark-teslim-plani)
+
+- **Run:** full-call replay 17:27 to 19:12 UTC, 640 generations, rc 0 (`gate_r2/native/fullcall/gen_native.jsonl`, 9446ad510a9a; `gen_native.scored.jsonl`, 50a09d3f5323). Analysis: `gate_r2_nofallback.py` (934955c12cbd) `--extra native=gate_r2/native/gen_native.jsonl,gate_r2/native/fullcall/gen_native.jsonl`; report `gate_r2/nofallback_report_native.json`, now 741ca0ecef07; run log `gate_r2/native/analysis/full_run.log`. With the fallback on, the script reproduces all 16,640 stored outcomes and compile flags. The arm's old-text block is identical to the 17:30 report (kept as `gate_r2/native/analysis/nofallback_report_native_oldtext_only.json`, 6fd4561a5b21). The report of record keeps sha 64f35a9ead38. The Mac GPU is free.
+- **Result, full-call replay** (both texts regenerated; 640 generations):
+
+| | Base | Native rendering | `opus_r2` | `fable_r2` |
+|---|---|---|---|---|
+| Escaped old text / escaped new text | 89 / 67 | 56 / 39 | 65 / 47 | 34 / 17 |
+| Harness as shipped: accepted | 444 | 446 | 443 | 451 |
+| Harness as shipped: compile failures among accepted (limit 9.9 %) | 7.9 % (35) | **10.3 % (46), guard missed** | 8.4 % (37) | 9.1 % (41) |
+| Harness as shipped: accepted and compiling | 407 | 398 | 404 | 408 |
+| Fallback off: accepted | 361 | 390 | 385 | 407 |
+| Fallback off: compile failures among accepted (limit 7.5 %) | 5.5 % (20) | **9.0 % (35), guard missed** | 6.8 % (26) | 6.6 % (27) |
+| Fallback off: accepted and compiling | 339 | 353 | 357 | 378 |
+
+- **Against the expectation written before the run:** the full-call artefacts stay above both marks (56 against the mark of 45; 39 against 34), so by the registered reading the escaped view is not the main source of the escapes at the call level. It removes 37 % of the escaped old texts and 42 % of the escaped new texts. I had written no expectation for the compile guard; I did not expect the miss.
+- **Where the compile failures are** (shipped harness; not registered, read after the result): 21 generations fail to compile that did not in the base, 10 stop failing. Of the 21, 12 were accepted and compiling in the base and 9 were rejected there. 10 of the 21 fall on the two tasks of one repository (`pyjanitor_1741` 6, each an unterminated triple-quoted string in the edited file; `pyjanitor_1739` 4). Leaving out one repository at a time, only pyjanitor changes the verdict: without its 24 generations the arm meets the guard under both rules (7.7 % against a limit of 8.9 %; 6.9 % against 7.3 %). As a yardstick for the noise of this replay, the base's own greedy and sampled draws differ by 3 calls that turn from compiling to not compiling and 3 the other way (over 320 calls; the comparisons with the base are over 640 generations); the edits turn 2 (Opus), 1 (Fable) and 6 (informed Opus) accepted-and-compiling base generations into compile failures, the view change 12.
+- **The arm in one place** (old-text replay, entry 17:30 UTC, plus this one): artefacts 100 to 78; acceptance +0.1 points with the fallback and +3.7 without; working calls lost 1 and 2 per draw with the fallback (rule met) and none without; compile guard missed under both rules. Against the three guards of the round-2 rule it therefore fails under both rules, on the compile guard alone. Opus's and Fable's edits meet all three without the fallback and fail on lost calls with it (Fable's also on acceptance, narrowly).
+- **Reading (by the registered rule):** descriptive; no claim about which intervention is better. What can be said: the view change shows the same dependence on the matching rule as the weight edits, it removes fewer escapes than Fable's and informed Opus's edits, and it is not free of side effects in complete calls. The compile-guard miss rests on one repository and on an arm without random controls, so it is a caution, not an established cost.
+- **Limits:** as in the 17:30 entry (no size-matched controls, prompts differ from the base's, single calls on frozen prefixes, no live run with the native view on this set).
