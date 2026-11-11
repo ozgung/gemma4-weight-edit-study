@@ -26,9 +26,9 @@ This repository holds the code, protocols, records and agent configurations behi
 
 The scripts keep the paths of the original project (for example `outputs/weight_edit/claude/...`). Many of them read
 run outputs, agent traces, model weights or the competition harness, which are not part of this repository.
-`scripts/weight_edit/replay_set.py` and `replay_set_ood.py` also import a prompt-rendering module from the
-competition pipeline that is not included. They are kept as the record of how the replay set was built; the set
-itself is in the Kaggle dataset below.
+`scripts/weight_edit/replay_set.py` and `replay_set_ood.py` import the prompt-rendering module `scripts/sft_export.py`
+from the competition pipeline. They are kept as the record of how the replay set was built; the set itself is in the
+Kaggle dataset below.
 
 ## Related resources
 
