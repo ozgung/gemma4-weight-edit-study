@@ -23,6 +23,7 @@ This repository holds the code, protocols, records and agent configurations behi
 | `kernels/wp7t_files_extract/` | The Kaggle kernel that recovered the files touched in the thinking-on live run. |
 | `submissions/` | The three agent configurations used in the live runs: e001nt (thinking off), e001tt (thinking on) and the serving manifest of the thinking-on run. |
 | `figures/` | The paper figures as PNG and PDF: `v4/` for Paper 1 (English and Turkish), `resource/` for Paper 2. |
+| `paper/` | PDFs: Paper 1's writeup and full paper, Paper 2's writeup. |
 
 The scripts keep the paths of the original project (for example `outputs/weight_edit/claude/...`). Many of them read
 run outputs, agent traces, model weights or the competition harness, which are not part of this repository.

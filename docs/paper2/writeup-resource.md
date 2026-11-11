@@ -113,9 +113,9 @@ Real-model validation covers E4B; other sizes are untested and MoE layers are un
 ## 9. Availability and licences
 
 <!-- Fill links only once public; give version/commit. -->
-- **`weightprog`:** 0.2.0, commit `810116f`, Apache-2.0, [github.com/ozgung/weightprog](https://github.com/ozgung/weightprog). <!-- Verify it is public before submitting. --> Install with `pip install -e ".[mlx]"` or `".[torch]"`, then run the commands in Section 2.
-- **OOD-C:** [Kaggle dataset link]. Run with the bundled `run_ood45.py` and an agent endpoint. Task metadata are CC-BY-4.0; repository code and wheels keep their own licences.
-- **Replay set and study kit:** [project repository link]. To reproduce the gate: `WEIGHTPROG_GATE_DIR=REPORTS WEIGHTPROG_REPLAY_DIR=REPLAY pytest -q weightprog_study/tests/test_gate_regression.py`.
+- **`weightprog`:** 0.2.1 (tag `v0.2.1`; code identical to 0.2.0, commit `810116f`), Apache-2.0, [github.com/ozgung/weightprog](https://github.com/ozgung/weightprog). <!-- Verify it is public before submitting. --> Install with `pip install -e ".[mlx]"` or `".[torch]"`, then run the commands in Section 2.
+- **OOD-C:** [kaggle.com/datasets/ozgung/g4-oodc](https://www.kaggle.com/datasets/ozgung/g4-oodc). Run with the bundled `run_ood45.py` and an agent endpoint. Task metadata are CC-BY-4.0; repository code and wheels keep their own licences.
+- **Replay set and study kit:** the calls and frozen reports at [kaggle.com/datasets/ozgung/g4-weight-edit-replay](https://www.kaggle.com/datasets/ozgung/g4-weight-edit-replay); the kit, protocols and records at [github.com/ozgung/gemma4-weight-edit-study](https://github.com/ozgung/gemma4-weight-edit-study). To reproduce the gate: `WEIGHTPROG_GATE_DIR=REPORTS WEIGHTPROG_REPLAY_DIR=REPLAY pytest -q weightprog_study/tests/test_gate_regression.py`.
 - **Companion study:** [Paper 1 link].
 
 ## References

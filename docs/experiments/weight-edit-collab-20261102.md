@@ -2053,3 +2053,25 @@ The pass budget (10) and the gate are unchanged. For the paper: the informed arm
   - lib named it the main risk: about 3 % of plain prompts change their greedy text at bf16 ties.
   - nolib has a section "Rule-less sensitivity investigation (important caveat)".
   - libfable estimated that a middle-layer unit patch "would fail that check about half the time" and moved its edit to layer 41 for that reason.
+
+### 2026-11-11 13:14 UTC: noise floor of the usability test's rule-less keep check (post hoc, descriptive; Claude, paper session)
+
+- **Why:** in the usability test, 3 of the 6 matched random edits also exceeded the four-prompt rule-less limit (with 4 prompts, 10 % allows no change). This measures how often a matched random edit changes the greedy output of unrelated plain-code prompts, and where the three frozen edits fall. The registered verdicts stand whatever this shows. The user gave the go at about 13:10 UTC 11-11.
+- **Script:** `scripts/weight_edit/libtest/noise_floor.py` (sha256 799e4007ac48), the judge's env (`outputs/weight_edit/libtest/envs/lib`, weightprog 0.2.0), the same model and MLX backend. Output: `outputs/weight_edit/libtest/noise_floor/`.
+- **Prompts (48):** the test's 8 rule-less plain-code cases (4 holdout, 4 tune) and 40 new plain-code prompts in the same template, written in the script before any run. Greedy only, max_new 160, stop at three backticks.
+- **Configurations per frozen edit i** (lib 1, nolib 2, libfable 3, the judge's indices):
+  - the edit;
+  - the judge's two controls (seed 20261110 + 10 i + k), as a reproduction check;
+  - K new matched controls (seed 31111100 + 100 i + k, k = 1..K; `matched_control`, same modules, ranks and norms).
+  - K rule, fixed before any edited generation: K = 20 if the base run implies at most 3 h, else 10. The base run (no edit) took 139 s for 48 prompts, so 69 configurations is about 2.7 h and K = 20.
+  - Already run before this entry: the base only. Its greedy text equals the judge's on the 4 holdout prompts.
+- **Measures:**
+  - per configuration: the prompts whose greedy text differs from base, over all 48 and over the 4 holdout prompts;
+  - per arm: the controls that would fail the registered limit (at least 1 of the 4 holdout prompts changed), and the edit's rank among its 20 controls on the 48;
+  - pooled over the 60 new controls: the failure rate with a Wilson 95 % interval.
+- **Reproduction check:** the judge's controls should change 1 and 1 (lib), 0 and 0 (nolib), 1 and 0 (libfable) of the 4 holdout prompts, and the edits 1, 2 and 1. A mismatch is reported, and the rest is read with that caveat.
+- **Expectation:**
+  - The pooled rate at which matched controls fail the four-prompt check lies between 0.25 and 0.75 (observed 3 of 6).
+  - On the 48 prompts, the two library edits change fewer prompts than their controls' median, since their KL is about a tenth of their controls'. The nolib edit sits near its controls' median.
+  - The lib agent's own estimate was that about 3 % of plain prompts change their greedy text at bf16 ties.
+- **Use:** descriptive only. If it finishes in time, it goes into Paper 2 §4 as one sentence, as a rate with its interval. No verdict changes.
