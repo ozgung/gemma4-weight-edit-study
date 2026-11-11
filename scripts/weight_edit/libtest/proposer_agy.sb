@@ -1,0 +1,53 @@
+(version 1)
+;; macOS Seatbelt profile for a usability-test arm run as headless Antigravity CLI (agy; sandbox-exec; macOS only).
+;; Owner: Claude (fork, libtest). Derived from weightprog_study's proposer_codex.sb.
+;; Parameters (sandbox-exec -D): HOME (the real home) AGYHOME AGYBIN PACKET RUN MODEL VENV PYHOME TMPD
+;; agy runs with HOME=AGYHOME: an isolated home signed in once for this test, so the arm sees none of the user's other
+;; Antigravity conversations, memories, knowledge items or settings. agy's own --sandbox is off (macOS cannot nest
+;; Seatbelt profiles); this profile is the boundary. Chrome cannot be started (no browser tool). Known holes as in
+;; proposer_claude.sb: file metadata readable everywhere, outbound TCP open (the API needs it; the transcript audit
+;; checks network use), the keychain readable at the file level.
+(allow default)
+
+;; ---- reads -------------------------------------------------------------------------------------------------------
+(deny file-read-data (subpath (param "HOME")))
+(deny file-read-data (subpath "/private/tmp"))
+(deny file-read-data (subpath "/Users/Shared"))
+(deny file-read-data (subpath "/Volumes"))
+
+;; agy: its binary directory, the isolated home, keychain and preferences
+(allow file-read-data (subpath (param "AGYBIN")))
+(allow file-read-data (subpath (param "AGYHOME")))
+(allow file-read-data (subpath (string-append (param "HOME") "/Library/Keychains")))
+(allow file-read-data (subpath (string-append (param "HOME") "/Library/Preferences")))
+
+;; Python for the weight kernel: the environment and its base interpreter
+(allow file-read-data (subpath (param "PYHOME")))
+(allow file-read-data (subpath (param "VENV")))
+
+;; the arm's material: packet (read), run folder (read/write), model directory (read)
+(allow file-read-data (subpath (param "PACKET")))
+(allow file-read-data (subpath (param "RUN")))
+(allow file-read-data (subpath (param "MODEL")))
+(allow file-read-data (subpath (param "TMPD")))
+
+;; ---- writes ------------------------------------------------------------------------------------------------------
+(deny file-write* (subpath (param "HOME")))
+(deny file-write* (subpath "/private/tmp"))
+(allow file-write* (subpath (param "RUN")))
+(allow file-write* (subpath (string-append (param "PACKET") "/scratch")))
+(allow file-write* (subpath (param "TMPD")))
+(allow file-write* (subpath (param "AGYHOME")))
+(allow file-write* (subpath (string-append (param "HOME") "/Library/Keychains")))
+(allow file-write* (subpath (string-append (param "HOME") "/Library/Caches")))
+
+;; ---- no browser (agy's browser tool drives Chrome) ---------------------------------------------------------------
+(deny process-exec (subpath "/Applications"))
+(deny process-exec (subpath (string-append (param "HOME") "/Applications")))
+
+;; ---- no talking to other local agent sessions ------------------------------------------------------------------
+(deny network-outbound (remote unix-socket (path-regex #"^/private/tmp/cc-socks/")))
+(deny network-outbound (remote unix-socket (path-regex #"^/tmp/cc-socks/")))
+(deny network-outbound (remote unix-socket (path-regex #"^/Users/[^/]+/\.claude/")))
+(deny network-outbound (remote unix-socket (path-regex #"^/Users/[^/]+/\.codex/")))
+(deny network-outbound (remote unix-socket (path-regex #"^/Users/[^/]+/\.gemini/")))

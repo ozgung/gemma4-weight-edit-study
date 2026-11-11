@@ -1,0 +1,45 @@
+(version 1)
+;; Proposer sandbox for Codex CLI proposers (round 2, Astra arm). Owner: Claude. Derived from proposer.sb.
+;; Parameters (sandbox-exec -D): HOME REPO PACKET RUN MODEL VENV TMPD
+;; Policy: allow by default, then deny reading the user's home and the repo, then re-allow only what the proposer
+;; and Claude Code need. Later rules win. Writes are denied everywhere except the run folder, the packet's own
+;; scratch, temp dirs and Claude Code's own state for this cwd.
+(allow default)
+
+;; ---- reads -------------------------------------------------------------------------------------------------------
+(deny file-read-data (subpath (param "HOME")))
+(deny file-read-data (subpath "/private/tmp"))
+(deny file-read-data (subpath "/Users/Shared"))
+(deny file-read-data (subpath "/Volumes"))
+
+;; Codex CLI: binary (Homebrew, outside HOME, so readable by default), an isolated CODEX_HOME inside TMPD, and only the
+;; user's auth.json (via a symlink in CODEX_HOME; token refresh writes go to the original). Nothing else under ~/.codex
+;; (other sessions, history, plugins, the app-server sockets) is readable.
+(allow file-read-data (literal (string-append (param "HOME") "/.codex/auth.json")))
+(allow file-read-data (subpath (string-append (param "HOME") "/Library/Preferences")))
+
+;; Python for the weight kernel (the venv and its uv-managed interpreter)
+(allow file-read-data (subpath (string-append (param "HOME") "/.local/share/uv/python")))
+(allow file-read-data (subpath (param "VENV")))
+
+;; the proposer's material: packet (read), run folder (read/write), model weights (read)
+(allow file-read-data (subpath (param "PACKET")))
+(allow file-read-data (subpath (param "RUN")))
+(allow file-read-data (subpath (param "MODEL")))
+(allow file-read-data (subpath (param "TMPD")))
+
+;; ---- writes ------------------------------------------------------------------------------------------------------
+(deny file-write* (subpath (param "HOME")))
+(deny file-write* (subpath "/private/tmp"))
+(allow file-write* (subpath (param "RUN")))
+(allow file-write* (subpath (string-append (param "PACKET") "/scratch")))
+(allow file-write* (subpath (param "TMPD")))
+(allow file-write* (literal (string-append (param "HOME") "/.codex/auth.json")))
+(allow file-write* (regex (string-append "^" (param "HOME") "/\\.codex/auth\\.json\\..*")))
+(allow file-write* (subpath (string-append (param "HOME") "/Library/Caches")))
+
+;; ---- no talking to other local agent sessions (Claude sockets; Codex app-server sockets live under ~/.codex) --------------------------------------------------------------------
+(deny network-outbound (remote unix-socket (path-regex #"^/private/tmp/cc-socks/")))
+(deny network-outbound (remote unix-socket (path-regex #"^/tmp/cc-socks/")))
+(deny network-outbound (remote unix-socket (path-regex #"^/Users/[^/]+/\.claude/")))
+(deny network-outbound (remote unix-socket (path-regex #"^/Users/[^/]+/\.codex/")))
