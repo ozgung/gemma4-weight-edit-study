@@ -65,7 +65,8 @@ T = {
         "f1good": "found in the file as written",
         "esc": "escape code:  \\n stands for a line break,  \\\" for a quote",
         "b1": ["1  Editor", "Opus 5.5, Fable 5.1 or", "GPT-6 Astra, alone in", "a sandbox", "",
-               "✓ read any weight", "✓ 25 forward-pass requests", "   (Astra 10) on calls from", "   4 training repositories",
+               "✓ read any weight", "✓ 25 forward-pass requests", "   (Astra 10; later informed", "   and repair runs 10 each)",
+               "   on calls from 4 training", "   repositories",
                "✓ closed-form fits", "   (least squares)", "✗ gradients, backprop", "   or optimisers",
                "✗ the test repositories"],
         "b2": ["2  One edit", "W + B·A: a small", "change to chosen", "weight matrices", "(LoRA form), frozen", "before the test"],
@@ -93,7 +94,8 @@ T = {
         "f6b": "(b) Working calls lost", "guard": "by the edit, per draw (greedy, T 0.6);\nred line: limit (2)",
         "f6bg": ["16-bit", "4-bit vLLM"],
         "f7a": "(a) Edit calls with an escape artefact", "f7b": "(b) Solved tasks",
-        "f7arms": ["Base model", "Fable's edit", "Random adapter"], "of": "{a} of {b}", "tie": "ties at these sizes",
+        "f7arms": ["Base model", "Fable's edit", "Random adapter"], "of": "{a} of {b}",
+        "tie": "differences of {lo}–{hi} tasks:\nnot distinguishable at\nthese sample sizes",
         "f7g": ["First run, 115 tasks\n(exploratory)", "OOD-C, 186 tasks\nthinking off\n(planned in advance)",
                 "OOD-C, 186 tasks\nthinking on\n(planned in advance)"],
         "f7gb": ["of 115", "of 53\ngradable,\nthinking off", "of 53\ngradable,\nthinking on"],
@@ -120,7 +122,8 @@ T = {
                    ("OOD-C replication", ["planned in advance, 186 tasks,", "148 new repositories"]),
                    ("OOD-C, thinking on", [])],
         "w2be": "base → edit", "w2rand": "random adapter ≈ base in all three",
-        "w2note": "→  tested next.  Each group has its own metric; the numbers are not on a common scale.",
+        "w2note": "→  tested next.  (a) and (b) count escape artefacts in replayed old texts;\n(c) counts live edit "
+                  "calls with an artefact, so (c) is on a different scale.",
         "w2out": [("Change", "yes, in all three groups"),
                   ("Preservation", "no tested change met the rule\n(3 edits, 3 gradient-trained adapters)"),
                   ("Task outcomes", "no detectable difference")],
@@ -145,7 +148,8 @@ T = {
         "f1good": "dosyada yazıldığı gibi bulunuyor",
         "esc": "kaçış kodu:  \\n satır sonu,  \\\" tırnak işareti yerine geçer",
         "b1": ["1  Editör", "Opus 5.5, Fable 5.1 ya da", "GPT-6 Astra, kum havuzunda", "tek başına", "",
-               "✓ her ağırlığı okuyabilir", "✓ 25 ileri geçiş isteği", "   (Astra 10), 4 eğitim", "   deposundaki çağrılarda",
+               "✓ her ağırlığı okuyabilir", "✓ 25 ileri geçiş isteği", "   (Astra 10; sonraki", "   bilgilendirilmiş ve onarım",
+               "   çalışmaları 10'ar), 4 eğitim", "   deposundaki çağrılarda",
                "✓ kapalı biçimli fit", "   (en küçük kareler)", "✗ gradyan, geri yayılım", "   ya da optimizer",
                "✗ test depoları"],
         "b2": ["2  Tek düzenleme", "W + B·A: seçilen", "ağırlık matrislerine", "küçük bir değişiklik", "(LoRA biçimi), testten", "önce donduruldu"],
@@ -175,7 +179,7 @@ T = {
         "f6bg": ["16 bit", "4 bit vLLM"],
         "f7a": "(a) Kaçış kalıntısı taşıyan düzenleme çağrıları", "f7b": "(b) Çözülen görevler",
         "f7arms": ["Temel model", "Fable'ın düzenlemesi", "Rastgele adaptör"], "of": "{a}/{b}",
-        "tie": "bu boyutlarda beraberlik",
+        "tie": "{lo}–{hi} görevlik farklar:\nbu örneklem büyüklüklerinde\nayırt edilemez",
         "f7g": ["İlk çalışma, 115 görev\n(keşif amaçlı)", "OOD-C, 186 görev\ndüşünme kapalı\n(önceden planlanmış)",
                 "OOD-C, 186 görev\ndüşünme açık\n(önceden planlanmış)"],
         "f7gb": ["115 görevden", "notlanabilen\n53, düşünme\nkapalı", "notlanabilen\n53, düşünme\naçık"],
@@ -202,7 +206,8 @@ T = {
                    ("OOD-C tekrarı", ["önceden planlanmış, 186 görev,", "148 yeni depo"]),
                    ("OOD-C, düşünme açık", [])],
         "w2be": "temel → düzenleme", "w2rand": "rastgele adaptör ≈ temel (üçünde de)",
-        "w2note": "→  sıradaki test.  Her grubun kendi ölçütü var; sayılar ortak bir ölçekte değil.",
+        "w2note": "→  sıradaki test.  (a) ve (b) yeniden oynatılan eski metinlerdeki kaçış kalıntılarını sayar;\n"
+                  "(c) kalıntı taşıyan canlı düzenleme çağrılarını sayar; bu yüzden (c) farklı bir ölçekte.",
         "w2out": [("Değişim", "evet, üç grupta da"),
                   ("Koruma", "test edilen hiçbir değişiklik kuralı karşılamadı\n(3 düzenleme, 3 gradyanla eğitilmiş adaptör)"),
                   ("Görev sonuçları", "saptanabilir bir fark yok")],
@@ -528,7 +533,9 @@ def fig7(t, lang):
             v = tot[a]["resolved"]
             bx.bar(x, v, width=w, color=cols[ai], zorder=2)
             bx.text(x, v + 0.5, str(v), ha="center", va="bottom", size=6.8, color=INK, weight="bold")
-    bx.text(1.0, 28, t["tie"], ha="center", va="bottom", size=6.8, color=INK2, style="italic")
+    spread = [max(g[a]["resolved"] for a in arms) - min(g[a]["resolved"] for a in arms) for g in groups]
+    bx.text(1.0, 25.4, t["tie"].format(lo=min(spread), hi=max(spread)), ha="center", va="bottom", size=7, color=INK2,
+            style="italic", linespacing=1.2)
     bx.set_xticks([0, 1, 2])
     bx.set_xticklabels(t["f7gb"], size=5.6)
     bx.set_ylim(0, 32)
@@ -636,14 +643,16 @@ def num(v: float, lang: str, fmt: str = ".2f") -> str:
 
 
 def w2(t, lang):
-    """Writeup Figure 2: evidence map (schematic). Arrows mean "tested next"; the groups do not share a scale."""
+    """Writeup Figure 2: evidence map (schematic). Arrows mean "tested next"; (a) and (b) share the replay metric,
+    (c) counts live edit calls and is on a different scale."""
     base, edit, rand = gate_numbers()
     cuts = sorted(100 * (base - v) / base for v in edit.values())
     s = json.loads(STAGE1.read_text())
     fewer = {p: 100 * (1 - s[p]["edit"]["artefacts"] / s[p]["base"]["artefacts"]) for p in ("bf16", "w4a16")}
     live = [{a: 100 * g[a]["artefact_calls"] / g[a]["counted_calls"] for a in ("base", "edit", "rand")} for g in live_numbers()]
     print("w2: cuts", cuts, "random", sorted(rand), "fewer", fewer, "live", live)
-    W, H, yb, gap = 6.3, 4.66, 1.5, 0.13
+    extra = 0.13 * t["w2note"].count("\n")  # room for a note of more than one line, above the outcome strips
+    W, H, yb, gap = 6.3, 4.66 + extra, 1.5 + extra, 0.13
     fig, ax = canvas(W, H)
     ws = [1.92, 1.82, 2.24]
     xs = [0.03, 0.03 + ws[0] + gap, 0.03 + ws[0] + ws[1] + 2 * gap]
@@ -693,9 +702,10 @@ def w2(t, lang):
         y = para(x, y - 0.03 - dy, sub) - 0.1
     ax.plot([x, xr], [y + 0.035, y + 0.035], color=GRID, lw=0.8)
     ax.text(x, y - 0.03, t["w2rand"], size=7, color=INK2, va="top")
-    ax.text(0.05, yb - 0.09, t["w2note"], size=7, color=INK2, va="top", style="italic")
+    ax.text(0.05, yb - 0.09, t["w2note"], size=7, color=INK2, va="top", style="italic", linespacing=1.4)
     # outcome strips and the deployment badge
-    y, sw = yb - 0.36, 3.95
+    y0 = yb - 0.36 - extra
+    y, sw = y0, 3.95
     for (lead, text), ok in zip(t["w2out"], [True, False, None]):
         n = text.count("\n") + 1
         h = 0.27 + 0.14 * (n - 1)
@@ -710,7 +720,7 @@ def w2(t, lang):
             ax.text(1.32, yt - 0.14 * j, row, size=7, color=INK2, va="baseline")
         y -= h + 0.06
     bx, bw, bh = 0.03 + sw + 0.15, W - 0.06 - sw - 0.15, 0.52
-    by = (yb - 0.36 + y + 0.06) / 2 - bh / 2
+    by = (y0 + y + 0.06) / 2 - bh / 2
     ax.add_patch(FancyBboxPatch((bx, by), bw, bh, boxstyle="round,pad=0,rounding_size=0.05", fc="white", ec=MUTED, lw=0.8,
                                 ls=(0, (3, 2))))
     ax.text(bx + bw / 2, by + bh - 0.2, t["w2badge"][0], size=7, weight="bold", color=INK, va="baseline", ha="center")
