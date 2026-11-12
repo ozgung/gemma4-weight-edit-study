@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use this study's code or records, please cite the writeup that reports the study (preferred-citation below)."
+type: software
+title: "gemma4-weight-edit-study"
+license: Apache-2.0
+authors:
+  - family-names: "Genc"
+    given-names: "Ozgun"
+repository-code: "https://github.com/ozgung/gemma4-weight-edit-study"
+preferred-citation:
+  type: generic
+  title: "Frontier Models as Weight Editors for Gemma 4 E4B"
+  authors:
+    - family-names: "Genc"
+      given-names: "Ozgun"
+  year: 2026
+  publisher:
+    name: "Kaggle"
+  notes: "Kaggle Writeup, Gemma 4 Developer Agent Competition (paper track). A gradient-free weight edit cuts a coding agent's escape-code errors from 15 % to 3 % in live runs, and shows what such fixes must also keep"
+  url: "https://www.kaggle.com/competitions/gemma-4-developer-agent-paper/writeups/frontier-models-as-weight-editors-for-gemma-4-e4b"
+references:
+  - type: generic
+    title: "Tools and Held-Out Tasks for Testing Agent-Written Weight Edits on Gemma 4"
+    authors:
+      - family-names: "Genc"
+        given-names: "Ozgun"
+    year: 2026
+    publisher:
+      name: "Kaggle"
+    notes: "Kaggle Writeup, Gemma 4 Developer Agent Competition (paper track). Describes the tools and data the study used: weightprog, OOD-C and the replay set"
+    url: "https://www.kaggle.com/competitions/gemma-4-developer-agent-paper/writeups/tools-held-out-tasks-agent-written-weight-edits"

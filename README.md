@@ -66,3 +66,30 @@ WEIGHTPROG_GATE_DIR=/path/to/replay-dataset/gate_r2 WEIGHTPROG_REPLAY_DIR=/path/
 ## Licence
 
 Apache-2.0, see `LICENSE`. The agent configurations target Gemma 4, which Google releases under Apache-2.0.
+
+## Citation
+
+The study is reported in *Frontier Models as Weight Editors for Gemma 4 E4B*; please cite it for the study and its
+results. The tools and data it used (`weightprog`, OOD-C and the replay set) are described in *Tools and Held-Out
+Tasks for Testing Agent-Written Weight Edits on Gemma 4*. `CITATION.cff` holds the same references for GitHub's
+"Cite this repository".
+
+```bibtex
+@misc{genc2026editors,
+  author       = {Genc, Ozgun},
+  title        = {{Frontier Models as Weight Editors for Gemma 4 E4B}},
+  year         = {2026},
+  howpublished = {Kaggle Writeup, Gemma 4 Developer Agent Competition (paper track)},
+  url          = {https://www.kaggle.com/competitions/gemma-4-developer-agent-paper/writeups/frontier-models-as-weight-editors-for-gemma-4-e4b},
+  note         = {A gradient-free weight edit cuts a coding agent's escape-code errors from 15 \% to 3 \% in live runs, and shows what such fixes must also keep}
+}
+
+@misc{genc2026tools,
+  author       = {Genc, Ozgun},
+  title        = {{Tools and Held-Out Tasks for Testing Agent-Written Weight Edits on Gemma 4}},
+  year         = {2026},
+  howpublished = {Kaggle Writeup, Gemma 4 Developer Agent Competition (paper track)},
+  url          = {https://www.kaggle.com/competitions/gemma-4-developer-agent-paper/writeups/tools-held-out-tasks-agent-written-weight-edits},
+  note         = {weightprog: closed-form editing with matched-control checks; 186 offline held-out agent tasks and a 320-call replay set}
+}
+```
